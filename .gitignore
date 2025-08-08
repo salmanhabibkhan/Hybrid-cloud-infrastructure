@@ -1,0 +1,8 @@
+# Ignore Maven target folder
+target/
+
+# Ignore compiled Java files
+*.class
+
+# Ignore temporary files
+*.log
