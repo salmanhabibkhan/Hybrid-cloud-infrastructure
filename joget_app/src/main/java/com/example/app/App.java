@@ -5,8 +5,8 @@ import java.sql.*;
 public class App {
     public static void main(String[] args) {
         String jdbcURL = "jdbc:mysql://localhost:3306/joget_db";
-        String dbUser = "root";
-        String dbPassword = "salman123"; // change this
+        String dbUser = "jogetuser";
+        String dbPassword = "StrongPassword123!"; // change this Accordingly
 
         try {
 
