@@ -1,17 +1,3 @@
-CREATE DATABASE joget_db;
-
-USE joget_db;
-
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100),
-    email VARCHAR(100)
-);
-
-INSERT INTO users (name, email) VALUES ('salman', 'salman@example.com');
-INSERT INTO users (name, email) VALUES ('habib', 'habib@example.com');
-
----------------
 #!/bin/bash
 set -e
 
@@ -30,7 +16,7 @@ network:
 EOF
 
 sudo netplan apply
-echo "Static IP configured."
+echo "Static IP configured."t
 
 # 2. Setup firewall with UFW
 sudo ufw default deny incoming

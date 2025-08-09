@@ -1,0 +1,14 @@
+CREATE DATABASE joget_db;
+
+USE joget_db;
+
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+INSERT INTO users (name, email) VALUES ('salman', 'salman@example.com');
+INSERT INTO users (name, email) VALUES ('habib', 'habib@example.com');
+
+---------------
