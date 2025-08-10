@@ -1,66 +1,74 @@
 #!/bin/bash
 set -e
 
-# 1. Setup Static IP (assuming netplan)
-cat <<EOF | sudo tee /etc/netplan/01-netcfg.yaml
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    ens33:
-      dhcp4: no
-      addresses: [192.168.10.10/24]
-      gateway4: 192.168.10.1
-      nameservers:
-        addresses: [8.8.8.8,8.8.4.4]
-EOF
+# ---------------------------
+# 1. Install System Packages
+# ---------------------------
+echo "[INFO] Updating system and installing packages..."
+sudo apt update && sudo apt install -y openjdk-17-jdk maven mysql-server git ufw
 
-sudo netplan apply
-echo "Static IP configured."t
-
-# 2. Setup firewall with UFW
+# ---------------------------
+# 2. Configure Firewall
+# ---------------------------
+echo "[INFO] Configuring UFW firewall..."
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
-sudo ufw allow 22
-sudo ufw allow 80
-# Allow MySQL only from subnet or add your AWS EC2 public IP
-sudo ufw allow from 192.168.10.0/24 to any port 3306
-sudo ufw enable
-echo "Firewall configured."
+sudo ufw allow 22    # SSH
+sudo ufw allow 80    # HTTP
+sudo ufw allow 3306  # MySQL
+sudo ufw --force enable
 
-# 3. Install Java (OpenJDK 17)
-sudo apt update
-sudo apt install -y openjdk-17-jdk
-echo "Java installed."
-
-# 4. Install MySQL server
-sudo apt install -y mysql-server
+# ---------------------------
+# 3. Start and Secure MySQL
+# ---------------------------
+echo "[INFO] Starting MySQL..."
 sudo systemctl start mysql
 sudo systemctl enable mysql
-echo "MySQL installed and running."
 
-# 5. Secure MySQL Installation (basic, manual input required)
-echo "Run 'sudo mysql_secure_installation' to secure MySQL."
+echo "[INFO] Securing MySQL and creating database, user, and table..."
+sudo mysql <<EOF
+CREATE DATABASE IF NOT EXISTS joget_db;
 
-# 6. Clone your app code from GitHub (replace repo URL)
-if [ ! -d ~/joget_app ]; then
-  git clone https://github.com/yourusername/joget_app.git ~/joget_app
+CREATE USER IF NOT EXISTS 'jogetuser'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+GRANT ALL PRIVILEGES ON joget_db.* TO 'jogetuser'@'localhost';
+FLUSH PRIVILEGES;
+
+USE joget_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+INSERT IGNORE INTO users (name, email) VALUES ('salman', 'salman@example.com');
+INSERT IGNORE INTO users (name, email) VALUES ('habib', 'habib@example.com');
+EOF
+
+# ---------------------------
+# 4. Clone Java App from GitHub (Private Repo via PAT)
+# ---------------------------
+GITHUB_PAT="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"   # <-- 🔒 REPLACE THIS
+GITHUB_REPO="salmanhabibkhan/Hybrid-cloud-infrastructure"
+
+echo "[INFO] Cloning Java application from GitHub..."
+if [ -d ~/joget_app ]; then
+  echo "[INFO] Directory exists. Pulling latest changes..."
+  cd ~/joget_app/joget_app && git pull
 else
-  cd ~/joget_app && git pull
+  git clone https://${GITHUB_PAT}@github.com/${GITHUB_REPO}.git ~/joget_app/joget_app
 fi
-echo "App code cloned."
 
-# 7. Build your Java app (assuming Maven installed)
-cd ~/joget_app
+# ---------------------------
+# 6. Build Java App with Maven
+# ---------------------------
+echo "[INFO] Building Java application..."
 mvn clean package
-echo "App built."
 
-# 8. Run your Java app (adjust as needed)
-java -jar target/joget_app-1.0-SNAPSHOT.jar &
-echo "App started."
+# ---------------------------
+# 7. Run the App in Background
+# ---------------------------
+echo "[INFO] Running Java application in background..."
+nohup java -jar target/joget_app-1.0-SNAPSHOT.jar > ~/joget_app/app.log 2>&1 &
 
-echo "Setup complete."
-
----------------------
-chmod +x setup_onprem.sh
-./setup_onprem.sh
+echo "[✅] Setup complete. Application is running."
