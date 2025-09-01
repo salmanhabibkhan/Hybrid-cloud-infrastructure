@@ -1,0 +1,62 @@
+name: Build and Deploy to EC2 via CodeDeploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ARTIFACT_BUCKET: ${{ secrets.ARTIFACT_BUCKET }}
+      CD_APP_NAME: ${{ secrets.CD_APP_NAME }}
+      CD_DEPLOYMENT_GROUP: ${{ secrets.CD_DEPLOYMENT_GROUP }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build Maven app
+        working-directory: ./joget_app
+        run: mvn -B -DskipTests clean package
+
+      - name: Prepare deployment artifact
+        run: |
+          rm -rf dist && mkdir -p dist
+          APP_JAR=$(find joget_app/target -maxdepth 1 -type f -name "*.jar" ! -name "*original*" | head -n 1)
+          if [ -z "$APP_JAR" ]; then echo "JAR not found"; exit 1; fi
+          mkdir -p dist/bundle
+          cp "$APP_JAR" dist/bundle/app.jar
+          cp -r deploy/* dist/bundle/
+          cd dist/bundle && zip -r ../artifact.zip . && cd -
+          echo "Artifact prepared: dist/artifact.zip"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload artifact to S3
+        run: |
+          KEY="artifacts/${{ github.run_id }}-${{ github.sha }}.zip"
+          aws s3 cp dist/artifact.zip s3://$ARTIFACT_BUCKET/$KEY
+          echo "S3_KEY=$KEY" >> $GITHUB_ENV
+
+      - name: Create CodeDeploy deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name "$CD_APP_NAME" \
+            --deployment-group-name "$CD_DEPLOYMENT_GROUP" \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --s3-location bucket=$ARTIFACT_BUCKET,key=$S3_KEY,bundleType=zip \
+            --description "GitHub Actions deployment $GITHUB_SHA"
