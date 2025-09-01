@@ -5,11 +5,19 @@ APP_DIR="/opt/joget_app"
 APP_JAR="$APP_DIR/app.jar"
 APP_PORT="${APP_PORT:-8080}"
 
-# Fetch DB secrets from SSM Parameter Store (must exist)
-DB_URL=$(aws ssm get-parameter --name "/hybrid-demo/db_url" --with-decryption --query 'Parameter.Value' --output text || true)
-DB_USER=$(aws ssm get-parameter --name "/hybrid-demo/db_user" --with-decryption --query 'Parameter.Value' --output text || true)
-DB_PASS=$(aws ssm get-parameter --name "/hybrid-demo/db_password" --with-decryption --query 'Parameter.Value' --output text || true)
+# Helper to fetch SSM param, working for both SecureString and String
+get_param() {
+  local name="$1"
+  # Try with decryption first; if it fails (for String), try without
+  aws ssm get-parameter --name "$name" --with-decryption --query 'Parameter.Value' --output text 2>/dev/null || \
+  aws ssm get-parameter --name "$name" --query 'Parameter.Value' --output text
+}
 
+DB_URL=$(get_param "/hybrid-demo/db_url" || true)
+DB_USER=$(get_param "/hybrid-demo/db_user" || true)
+DB_PASS=$(get_param "/hybrid-demo/db_password" || true)
+
+# Write environment file
 cat >/etc/joget_app.env <<EOF
 APP_ENV=aws
 DB_URL=${DB_URL}
@@ -20,6 +28,7 @@ JAVA_OPTS=-Xms256m -Xmx512m
 EOF
 chmod 600 /etc/joget_app.env
 
+# Systemd unit
 cat >/etc/systemd/system/joget-app.service <<EOF
 [Unit]
 Description=Joget Java App
