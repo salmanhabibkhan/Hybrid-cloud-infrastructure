@@ -32,14 +32,14 @@ jobs:
 
       - name: Prepare deployment artifact
         run: |
-          rm -rf dist && mkdir -p dist
+          rm -rf dist && mkdir -p dist/bundle
           APP_JAR=$(find joget_app/target -maxdepth 1 -type f -name "*.jar" ! -name "*original*" | head -n 1)
           if [ -z "$APP_JAR" ]; then echo "JAR not found"; exit 1; fi
-          mkdir -p dist/bundle
           cp "$APP_JAR" dist/bundle/app.jar
           cp -r deploy/* dist/bundle/
-          cd dist/bundle && zip -r ../artifact.zip . && cd -
-          echo "Artifact prepared: dist/artifact.zip"
+          (cd dist/bundle && zip -r ../artifact.zip .)
+          echo "Listing artifact contents:"
+          unzip -l dist/artifact.zip | sed -n '1,200p'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

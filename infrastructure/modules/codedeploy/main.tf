@@ -64,3 +64,35 @@ resource "aws_codedeploy_deployment_group" "dg" {
     enabled = false
   }
 }
+
+# NEW: Allow the EC2 instance role to read artifacts from this bucket
+resource "aws_iam_role_policy" "ec2_artifact_read" {
+  name = "${var.project_name}-artifact-read"
+  role = var.ec2_role_name
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "ListBucket"
+        Effect = "Allow"
+        Action = ["s3:ListBucket"]
+        Resource = "arn:aws:s3:::${aws_s3_bucket.artifacts.bucket}"
+        Condition = {
+          StringLike = {
+            "s3:prefix" = ["artifacts/*"]
+          }
+        }
+      },
+      {
+        Sid    = "GetObjects"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion"
+        ]
+        Resource = "arn:aws:s3:::${aws_s3_bucket.artifacts.bucket}/artifacts/*"
+      }
+    ]
+  })
+}

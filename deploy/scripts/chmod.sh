@@ -1,3 +1,3 @@
 #!/bin/bash
 set -euxo pipefail
-systemctl start joget-app
+chmod +x scripts/*.sh || true

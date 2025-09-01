@@ -13,3 +13,7 @@ variable "target_group_arn" {
 variable "target_group_name" {
   type = string
 }
+
+variable "ec2_role_name" {
+  type = string
+}

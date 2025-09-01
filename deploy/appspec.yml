@@ -3,8 +3,12 @@ os: linux
 files:
   - source: app.jar
     destination: /opt/joget_app
+    overwrite: true
 hooks:
   BeforeInstall:
+    - location: scripts/chmod.sh
+      timeout: 60
+      runas: root
     - location: scripts/stop_server.sh
       timeout: 120
       runas: root

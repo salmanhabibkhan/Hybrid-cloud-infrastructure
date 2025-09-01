@@ -43,6 +43,7 @@ module "codedeploy" {
   asg_name           = module.app.asg_name
   target_group_arn   = module.alb.target_group_arn
   target_group_name  = module.alb.target_group_name
+  ec2_role_name     = module.app.ec2_role_name
 }
 
 module "monitoring" {
