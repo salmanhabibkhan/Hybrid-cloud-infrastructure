@@ -65,7 +65,7 @@ resource "aws_codedeploy_deployment_group" "dg" {
   }
 }
 
-# NEW: Allow the EC2 instance role to read artifacts from this bucket
+# Allow the EC2 instance role to read artifacts from this bucket
 resource "aws_iam_role_policy" "ec2_artifact_read" {
   name = "${var.project_name}-artifact-read"
   role = var.ec2_role_name

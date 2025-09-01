@@ -32,7 +32,7 @@ resource "aws_iam_policy" "ssm_read_params" {
     Statement = [{
       Effect   = "Allow",
       Action   = ["ssm:GetParameter","ssm:GetParameters","ssm:GetParametersByPath"],
-      Resource = "arn:aws:ssm:*:*:parameter/hybrid-demo/*"
+      Resource = "arn:aws:ssm:*:*:parameter/hybrid-cloud-joget/*"
     }]
   })
 }
@@ -60,7 +60,6 @@ resource "aws_launch_template" "lt" {
     security_groups = [var.app_security_group_id]
   }
 
-  # Static file (no templating) to avoid heredoc parsing issues
   user_data = filebase64("${path.module}/userdata.sh")
 
   tag_specifications {

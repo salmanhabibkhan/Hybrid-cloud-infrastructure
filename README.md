@@ -30,32 +30,32 @@ Prerequisites:
 - AWS account and credentials (Administrator for initial setup)
 - GitHub repo (this repo) with secrets configured (see CI/CD Setup below)
 - SSM Parameter Store entries for DB config (so no secrets in code):
-  - /hybrid-demo/db_url
-  - /hybrid-demo/db_user
-  - /hybrid-demo/db_password
+  - /hybrid-cloud-joget/db_url
+  - /hybrid-cloud-joget/db_user
+  - /hybrid-cloud-joget/db_password
 
 Deploy (Cloud):
 - cd terraform/cloud
 - terraform init
-- terraform apply -var="project_name=hybrid-demo" -var="admin_ip=YOUR_PUBLIC_IP/32"
+- terraform apply -var="project_name=hybrid-cloud-joget" -var="admin_ip=YOUR_PUBLIC_IP/32"
 - After apply, note output alb_dns_name
 
 Deploy (On-Prem simulator):
 - cd terraform/onprem
 - terraform init
-- terraform apply -var="project_name=hybrid-demo" -var="admin_ip=YOUR_PUBLIC_IP/32"
+- terraform apply -var="project_name=hybrid-cloud-joget" -var="admin_ip=YOUR_PUBLIC_IP/32"
 
 CI/CD Setup:
 1) Create SSM Parameters in us-west-1 (SecureString recommended):
-   - Name: /hybrid-demo/db_url      Value: jdbc:mysql://YOUR_RDS_OR_ONPREM:3306/joget_db
-   - Name: /hybrid-demo/db_user     Value: jogetuser
-   - Name: /hybrid-demo/db_password Value: StrongPassword123!
+   - Name: /hybrid-cloud-joget/db_url      Value: jdbc:mysql://YOUR_RDS_OR_ONPREM:3306/joget_db
+   - Name: /hybrid-cloud-joget/db_user     Value: jogetuser
+   - Name: /hybrid-cloud-joget/db_password Value: StrongPassword123!
 2) In GitHub repo settings > Secrets and variables > Actions, add:
    - AWS_ACCESS_KEY_ID
    - AWS_SECRET_ACCESS_KEY
    - AWS_REGION = us-west-1
-   - CD_APP_NAME = hybrid-demo-codedeploy-app
-   - CD_DEPLOYMENT_GROUP = hybrid-demo-codedeploy-dg
+   - CD_APP_NAME = hybrid-cloud-joget-codedeploy-app
+   - CD_DEPLOYMENT_GROUP = hybrid-cloud-joget-codedeploy-dg
    - ARTIFACT_BUCKET = (copy terraform output artifact_bucket)
 3) Push to main (or open a PR and merge). The workflow:
    - Builds the Java app (joget_app) with Maven
@@ -77,6 +77,6 @@ Docs:
 
 Security:
 - No app secrets in Terraform or user data
-- Instance role can read only /hybrid-demo/* SSM parameters (least privilege)
+- Instance role can read only /hybrid-cloud-joget/* SSM parameters (least privilege)
 - ALB SG allows 80 from Internet; App SG allows 80 only from ALB SG; Private subnets have no public ingress
 - Use ACM + HTTPS on ALB for production

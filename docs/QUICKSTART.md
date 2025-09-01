@@ -5,15 +5,15 @@ Goal: Infra via Terraform; App via CI/CD. No app config in Terraform.
 1) Deploy Cloud Infra (us-west-1)
 - cd terraform/cloud
 - terraform init
-- terraform apply -var="project_name=hybrid-demo" -var="admin_ip=YOUR_PUBLIC_IP/32"
+- terraform apply -var="project_name=hybrid-cloud-joget" -var="admin_ip=YOUR_PUBLIC_IP/32"
 - Save outputs:
   - alb_dns_name
   - artifact_bucket
 
 2) Create DB Secrets in SSM Parameter Store (us-west-1)
-- /hybrid-demo/db_url      jdbc:mysql://YOUR_RDS_OR_ONPREM:3306/joget_db
-- /hybrid-demo/db_user     jogetuser
-- /hybrid-demo/db_password StrongPassword123!
+- /hybrid-cloud-joget/db_url      jdbc:mysql://YOUR_RDS_OR_ONPREM:3306/joget_db
+- /hybrid-cloud-joget/db_user     jogetuser
+- /hybrid-cloud-joget/db_password StrongPassword123!
 Type: SecureString recommended.
 
 3) Configure GitHub Actions Secrets
@@ -22,13 +22,13 @@ Type: SecureString recommended.
   - AWS_SECRET_ACCESS_KEY
   - AWS_REGION = us-west-1
   - ARTIFACT_BUCKET = (terraform output)
-  - CD_APP_NAME = hybrid-demo-codedeploy-app
-  - CD_DEPLOYMENT_GROUP = hybrid-demo-codedeploy-dg
+  - CD_APP_NAME = hybrid-cloud-joget-codedeploy-app
+  - CD_DEPLOYMENT_GROUP = hybrid-cloud-joget-codedeploy-dg
 
 4) Deploy On-Prem Simulator (optional)
 - cd terraform/onprem
 - terraform init
-- terraform apply -var="project_name=hybrid-demo" -var="admin_ip=YOUR_PUBLIC_IP/32"
+- terraform apply -var="project_name=hybrid-cloud-joget" -var="admin_ip=YOUR_PUBLIC_IP/32"
 
 5) Push Code to Trigger CI/CD
 - Commit/push your Java app under joget_app/
