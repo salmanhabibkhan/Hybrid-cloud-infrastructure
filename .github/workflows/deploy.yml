@@ -2,7 +2,9 @@ name: Build and Deploy to EC2 via CodeDeploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - feature/*
 
 jobs:
   build-deploy:
