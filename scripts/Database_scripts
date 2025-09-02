@@ -10,5 +10,4 @@ CREATE TABLE users (
 
 INSERT INTO users (name, email) VALUES ('salman', 'salman@example.com');
 INSERT INTO users (name, email) VALUES ('habib', 'habib@example.com');
-INSERT INTO users (name, email) VALUES ('Huzaifa habib', 'huzi@example.com');
 ---------------
