@@ -7,6 +7,11 @@ APP_PORT="${APP_PORT:-8080}"
 AWS_REGION="${AWS_REGION:-us-west-1}"
 REQUIRE_DB_PARAMS="${REQUIRE_DB_PARAMS:-false}"  # set to true to fail deploy if DB params missing
 
+# Default DB credentials if SSM params missing
+DEFAULT_DB_URL="jdbc:mysql://joget-application-test-db.ci3uqk0e23dz.us-east-1.rds.amazonaws.com:3306/joget_db"
+DEFAULT_DB_USER="jogetuser"
+DEFAULT_DB_PASS="StrongPassword123!"
+
 # Helper to fetch SSM param (tries SecureString first)
 get_param() {
   local name="$1"
@@ -17,6 +22,11 @@ get_param() {
 DB_URL="$(get_param "/hybrid-cloud-joget/db_url" || true)"
 DB_USER="$(get_param "/hybrid-cloud-joget/db_user" || true)"
 DB_PASS="$(get_param "/hybrid-cloud-joget/db_password" || true)"
+
+# Use default values if params are empty
+DB_URL="${DB_URL:-$DEFAULT_DB_URL}"
+DB_USER="${DB_USER:-$DEFAULT_DB_USER}"
+DB_PASS="${DB_PASS:-$DEFAULT_DB_PASS}"
 
 if [ "$REQUIRE_DB_PARAMS" = "true" ]; then
   if [ -z "$DB_URL" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
